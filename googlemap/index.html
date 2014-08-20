@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content = "height = device-height, width = 420, user-scalable = no" />
+  <title>WebIOPi | Demo</title>
+  <script type="text/javascript" src="/webiopi.js"></script>
+  <script type="text/javascript">
+  webiopi().ready(function() {
+        var updateGPSData = function(macro, args, response) {
+                            var gpsdata = response.split("_");
+                            // Following lines use jQuery functions
+                            
+                            var lat = document.getElementById('lat');
+                            var lon = document.getElementById('lon');
+                            //var time = document.getElementById('time');
+                            lat.value = gpsdata[6];
+                            lon.value = gpsdata[4];
+                            //time.value = gpsdata[9];
+//alert("update");
+                            var maplat = document.getElementById('maplat');
+                            var maplon = document.getElementById('maplon');
+                            if ((Math.abs(parseFloat(maplat.value) - parseFloat(lat.value))>0.005) ||
+                              (Math.abs(parseFloat(maplon.value) - parseFloat(lon.value))>0.005))
+                            {
+    map.panTo( new google.maps.LatLng( lat.value, lon.value ) );
+
+    marker.setPosition( new google.maps.LatLng( lat.value, lon.value ) );
+    maplat.value = lat.value;
+    maplon.value = lon.value;
+
+                            }
+                             //drawMap(lat.value, lon.value);
+
+    marker.setPosition( new google.maps.LatLng( lat.value, lon.value ) );
+    map.panTo( new google.maps.LatLng( lat.value, lon.value ) );
+
+    //moveBus(lat.value, lon.value);
+                        }
+
+        var runMacroGetAllGpsData = function() {
+          webiopi().callMacro("getAllGpsData", [], updateGPSData);
+                webiopi().refreshGPIO(true);
+                        setTimeout(runMacroGetAllGpsData, 1000);
+        }
+        runMacroGetAllGpsData();
+
+  });
+
+  </script>
+
+
+    <script>
+    var mapOptions;
+    var map;
+    var marker;
+function initialize() {
+  var maplatvalue = 0;
+  var maplonvalue = 0;
+    var myLatLng = new google.maps.LatLng( maplatvalue, maplonvalue ),
+  mapOptions = {
+    zoom: 14,
+    center: myLatLng
+  };
+
+  map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+
+                            var maplat = document.getElementById('maplat');
+                            var maplon = document.getElementById('maplon');
+                            maplat.value = maplatvalue;
+                            maplon.value = maplonvalue;
+
+    marker = new google.maps.Marker( {position: myLatLng, map: map} );
+
+    marker.setMap(map);
+
+    //moveBus( maplatvalue, maplonvalue );
+
+}
+
+function moveBus(lat, lon){
+    //marker.setMap(null);
+
+    marker.setPosition( new google.maps.LatLng( lat, lon ) );
+    map.panTo( new google.maps.LatLng( lat, lon ) );
+
+    //drawMap(lat.value, lon.value);
+}
+
+
+function loadScript() {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = 'https://maps.googleapis.com/maps/api/js?v=3.exp&' +
+      'callback=initialize';
+  document.body.appendChild(script);
+}
+
+window.onload = loadScript;
+
+    </script>
+
+
+
+  <style type="text/css">
+    button {
+      margin: 5px 5px 5px 5px;
+      width: 45px;
+      height: 45px;
+      font-size: 24pt;
+      font-weight: bold;
+      color: black;
+    }
+
+    .LOW {
+      background-color: White;
+    }
+
+    .HIGH {
+      background-color: Red;
+    }
+
+  </style>
+
+    <style>
+      html, body, #map-canvas {
+        height: 70%;
+        width: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+    </style>
+
+
+
+</head>
+<body>
+    <div id="map-canvas"></div>
+
+  <div id="headlog">
+  <input type="text" id="lat" name="lat"/>
+  <input type="text" id="lon" name="lon"/>
+  <!--input type="text" id="time" name="time"/-->
+  <input type="text" id="maplat" name="maplat"/>
+  <input type="text" id="maplon" name="maplon"/>
+</div>
+
+     <!--div id="map-canvas"></div-->
+
+</body>
+</html>
