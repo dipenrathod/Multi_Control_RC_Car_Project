@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang=en>
+<head>
+<meta charset=utf-8>
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0," />
+<title></title>
+<style type="text/css">
+
+	{
+	  -webkit-touch-callout: none; /* prevent callout to copy image, etc when tap to hold */
+	  -webkit-text-size-adjust: none; /* prevent webkit from resizing text to fit */
+	/* make transparent link selection, adjust last value opacity 0 to 1.0 */
+	  -webkit-tap-highlight-color: rgba(0,0,0,0);
+	  -webkit-user-select: none; /* prevent copy paste, to allow, change 'none' to 'text' */
+	  -webkit-tap-highlight-color: rgba(0,0,0,0);
+	}
+
+	body {
+		/*
+		 * HTML5 Base Streaming 
+		 *background:url('http://192.168.0.14:8080/?action=stream') no-repeat center center fixed;
+		 */
+		background-color: #000000;
+		margin: 0px;
+	}
+	canvas {
+		display:block;
+		position:absolute;
+	}
+	.container {
+		width:auto;
+		text-align:center;
+		/*background-color:#ff0000;*/
+	}
+</style>
+
+
+</head>
+<body onload = "init()">
+
+<script src="./js/Vector2.js"></script>
+<script src="/webiopi.js"></script>
+<script>
+
+// Configuration your Control Data
+// 4,17,27,22 are No, for Multi-pi Board
+var 
+	M1_A = 4, // Right pin no of RPi GPIO
+	M1_B = 17, // Left pin no of RPi GPIO
+	M2_A = 27, // Front pin no of RPi GPIO
+	M2_B = 22,  // Rear pin no of RPi GPIO
+	ON_LED = 18,  // POWER ON LED
+    MAXCIRCLERADIAL = 100,
+    APPLYMOVE = 50/100; // If user move leftTouch APPLYMOVE percent of MAXCIRCLERADIAL any direction, then Move Target.
+
+//
+var GPIO_HIGH = 1,
+    GPIO_LOW = 0,
+    WRITE_DELAY = 40; // About 1 sec = 40;
+
+var canvas,
+ 	c, // c is the canvas' context 2D
+	container,
+	halfWidth,
+	halfHeight,
+	leftTouchID = -1,
+	leftTouchPos = new Vector2(0,0),
+	leftTouchStartPos = new Vector2(0,0),
+	leftVector = new Vector2(0,0),
+	applyVec = new Vector2(0,0);
+
+var valRight,
+    valLeft,
+    valFront,
+    valRear,
+    valLED;
+
+var writeDelayCnt=0;
+
+setupCanvas();
+
+var mouseX, mouseY,
+	// is this running in a touch capable environment?
+	touchable = 'createTouch' in document,
+	touches = []; // array of touch vectors
+
+setInterval(draw, 1000/35);
+
+if(touchable) {
+	canvas.addEventListener( 'touchstart', onTouchStart, false );
+	canvas.addEventListener( 'touchmove', onTouchMove, false );
+	canvas.addEventListener( 'touchend', onTouchEnd, false );
+	window.onorientationchange = resetCanvas;
+	window.onresize = resetCanvas;
+} else {
+
+	canvas.addEventListener( 'mousemove', onMouseMove, false );
+}
+
+function resetCanvas (e) {
+ 	// resize the canvas - but remember - this clears the canvas too.
+  	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+
+	halfWidth = canvas.width/2;
+	halfHeight = canvas.height/2;
+
+	//make sure we scroll to the top left.
+	window.scrollTo(0,0);
+}
+
+function init(){
+	webiopi().ready(function() {
+		webiopi().refreshTime = 10000;
+
+                webiopi().setFunction(M1_A, "OUT");
+                webiopi().setFunction(M1_B, "OUT");
+                webiopi().setFunction(M2_A, "OUT");
+                webiopi().setFunction(M2_B, "OUT");
+                webiopi().setFunction(ON_LED, "OUT");
+
+                w().refreshGPIO(true);
+	});
+}
+
+function draw() {
+
+	c.clearRect(0,0,canvas.width, canvas.height);
+
+	if(touchable) {
+
+		for(var i=0; i<touches.length; i++) {
+
+			var touch = touches[i];
+
+			if(touch.identifier == leftTouchID){
+				c.beginPath();
+				c.strokeStyle = "cyan";
+				c.lineWidth = 6;
+				c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 40,0,Math.PI*2,true);
+				c.stroke();
+				c.beginPath();
+				c.strokeStyle = "cyan";
+				c.lineWidth = 2;
+				c.arc(leftTouchStartPos.x, leftTouchStartPos.y, MAXCIRCLERADIAL,0,Math.PI*2,true);
+				c.stroke();
+				c.beginPath();
+				c.strokeStyle = "blue";
+
+				/* Modified by fendergold
+				 * c.arc(leftTouchPos.x, leftTouchPos.y, 40, 0,Math.PI*2, true);
+				 */
+
+				var calcVec = leftTouchPos.minusNew(leftTouchStartPos);
+				if ( Math.abs(calcVec.magnitude()) > MAXCIRCLERADIAL )
+				{
+				    calcVec.normalise().multiplyEq(100);
+				}
+
+				c.arc(leftTouchStartPos.x+calcVec.x, leftTouchStartPos.y+calcVec.y, 40, 0, Math.PI*2, true);
+				c.stroke();
+
+				//statusGpio();
+				//controlGpio(calcVec);
+
+				// Debuging
+				//c.beginPath();
+				//c.fillStyle = "white";
+				//c.fillText(writeDelayCnt+" : "+valRight+" : "+valLeft+" : "+valFront+" : "+valRear+" x:"+applyVec.x, touch.clientX+30, touch.clientY-30);
+				//c.stroke();
+
+
+			} else {
+
+				c.beginPath();
+				c.fillStyle = "white";
+				//c.fillText("touch id : "+touch.identifier+" x:"+touch.clientX+" y:"+touch.clientY, touch.clientX+30, touch.clientY-30);
+
+				c.beginPath();
+				c.strokeStyle = "red";
+				c.lineWidth = "6";
+				c.arc(touch.clientX, touch.clientY, 40, 0, Math.PI*2, true);
+				c.stroke();
+			}
+		}
+	} else {
+
+		c.fillStyle	 = "white";
+		c.fillText("mouse : "+mouseX+", "+mouseY, mouseX, mouseY);
+
+	}
+
+	statusGpio();
+
+	if ( writeDelayCnt > WRITE_DELAY ){
+		controlGpio(calcVec);
+		writeDelayCnt = 0;
+	}
+	else{
+		writeDelayCnt++;
+	}
+
+	drawStatusGpio();
+	//c.fillText("hello", 0,0);
+
+	drawCloseBtn();
+
+
+}
+
+function drawCloseBtn(){
+	c.font = "20px Arial";
+	c.lineWidth = 1;
+	c.strokeStyle = 'red';
+	c.strokeText("X", canvas.width - 30, 50);
+}
+
+function controlGpio(calcVec) {
+
+	applyVec.copyFrom(calcVec);
+
+	/*
+	 * If you have POWER_ON Process
+	 *if ( valLED == GPIO_HIGH ) {
+	 */
+	if ( 1 ) {
+		if ( applyVec.x > MAXCIRCLERADIAL * APPLYMOVE ) {
+			// Turn Right
+			webiopi().digitalWrite(M1_A, GPIO_LOW);  // GPIO Right Pin set High
+			webiopi().digitalWrite(M1_B, GPIO_HIGH);   // GPIO Left Pin set Low
+			webiopi().digitalWrite(M2_A, GPIO_LOW);  // GPIO Right Pin set High
+			webiopi().digitalWrite(M2_B, GPIO_LOW);   // GPIO Left Pin set Low
+		}
+		else if ( applyVec.x < -(MAXCIRCLERADIAL * APPLYMOVE) ) {
+			// Turn Left
+			webiopi().digitalWrite(M1_A, GPIO_LOW);   // GPIO Right Pin set Low
+			webiopi().digitalWrite(M1_B, GPIO_LOW);   // GPIO Left Pin set High
+			webiopi().digitalWrite(M2_A, GPIO_LOW);   // GPIO Right Pin set Low
+			webiopi().digitalWrite(M2_B, GPIO_HIGH);   // GPIO Left Pin set High
+		}
+	/*	else {
+			// Center
+			webiopi().digitalWrite(M1_A, GPIO_LOW);   // GPIO Right Pin set Low
+			webiopi().digitalWrite(M1_B, GPIO_LOW);   // GPIO Left Pin set Low
+			webiopi().digitalWrite(M2_A, GPIO_LOW);   // GPIO Right Pin set Low
+			webiopi().digitalWrite(M2_B, GPIO_LOW);   // GPIO Left Pin set Low
+		}*/
+
+		else if ( applyVec.y > MAXCIRCLERADIAL * APPLYMOVE ) {
+			// Back Rear
+			webiopi().digitalWrite(M1_A, GPIO_HIGH);   // GPIO Front Pin set Low
+			webiopi().digitalWrite(M1_B, GPIO_LOW);   // GPIO Rear Pin set High
+			webiopi().digitalWrite(M2_A, GPIO_HIGH);   // GPIO Front Pin set Low
+			webiopi().digitalWrite(M2_B, GPIO_LOW);   // GPIO Rear Pin set High
+		}
+		else if ( applyVec.y < -(MAXCIRCLERADIAL * APPLYMOVE) ) {
+			// Go Front
+			webiopi().digitalWrite(M1_A, GPIO_LOW);   // GPIO Front Pin set Low
+			webiopi().digitalWrite(M1_B, GPIO_HIGH);   // GPIO Rear Pin set High
+			webiopi().digitalWrite(M2_A, GPIO_LOW);   // GPIO Front Pin set Low
+			webiopi().digitalWrite(M2_B, GPIO_HIGH);   // GPIO Rear Pin set High
+		}
+		else {
+			// Center
+			webiopi().digitalWrite(M1_A, GPIO_LOW);   // GPIO Right Pin set Low
+			webiopi().digitalWrite(M1_B, GPIO_LOW);   // GPIO Left Pin set Low
+			webiopi().digitalWrite(M2_A, GPIO_LOW);   // GPIO Right Pin set Low
+			webiopi().digitalWrite(M2_B, GPIO_LOW);   // GPIO Left Pin set Low
+		}
+	}
+	else {
+	    stopGpio();
+	}
+
+}
+
+function statusGpio() {
+	// Right
+	if ( webiopi().digitalRead(M1_A) == GPIO_LOW &&
+		webiopi().digitalRead(M1_B) == GPIO_HIGH && 
+		webiopi().digitalRead(M2_A) == GPIO_LOW &&
+		webiopi().digitalRead(M2_B) == GPIO_LOW )
+		valRight = GPIO_HIGH;
+	else valRight = GPIO_LOW;
+
+	// Left
+	if ( webiopi().digitalRead(M1_A) == GPIO_LOW &&
+		webiopi().digitalRead(M1_B) == GPIO_LOW && 
+		webiopi().digitalRead(M2_A) == GPIO_LOW &&
+		webiopi().digitalRead(M2_B) == GPIO_HIGH )
+		valLeft = GPIO_HIGH;
+	else valLeft = GPIO_LOW;
+
+	// Front
+	if ( webiopi().digitalRead(M1_A) == GPIO_LOW &&
+		webiopi().digitalRead(M1_B) == GPIO_HIGH && 
+		webiopi().digitalRead(M2_A) == GPIO_LOW &&
+		webiopi().digitalRead(M2_B) == GPIO_HIGH )
+		valFront = GPIO_HIGH;
+	else valFront = GPIO_LOW;
+
+	// Rear
+	if ( webiopi().digitalRead(M1_A) == GPIO_HIGH &&
+		webiopi().digitalRead(M1_B) == GPIO_LOW && 
+		webiopi().digitalRead(M2_A) == GPIO_HIGH &&
+		webiopi().digitalRead(M2_B) == GPIO_LOW )
+		valRear = GPIO_HIGH;
+	else valRear = GPIO_LOW;
+
+	// RFID or LED
+	valLED = webiopi().digitalRead(ON_LED);
+
+	drawStatusGpio();
+}
+
+function drawStatusGpio(){
+	c.font = "50px Arial";
+
+	// Right
+	if ( valRight == GPIO_HIGH ) {
+		c.fillStyle = 'red';
+		c.fillText("R", 110, 70);
+	}
+	else {
+		c.lineWidth = 1;
+		c.strokeStyle = 'yellow';
+		c.strokeText("R", 110, 70);
+	}
+	// Left
+	if ( valLeft == GPIO_HIGH ) {
+		c.fillStyle = 'red';
+		c.fillText("L", 50, 70);
+	}
+	else {
+		c.lineWidth = 1;
+		c.strokeStyle = 'yellow';
+		c.strokeText("L", 50, 70);
+	}
+	// Front
+	if ( valFront == GPIO_HIGH ) {
+		c.fillStyle = 'red';
+		c.fillText("F", 80, 50);
+	}
+	else {
+		c.lineWidth = 1;
+		c.strokeStyle = 'yellow';
+		c.strokeText("F", 80, 50);
+	}
+	// Rear
+	if ( valRear == GPIO_HIGH ) {
+		c.fillStyle = 'red';
+		c.fillText("B", 80, 90);
+	}
+	else {
+		c.lineWidth = 1;
+		c.strokeStyle = 'yellow';
+		c.strokeText("B", 80, 90);
+	}
+
+}
+
+function stopGpio(){
+	webiopi().digitalWrite(M1_A, GPIO_LOW);   // GPIO Right Pin set Low
+	webiopi().digitalWrite(M1_B, GPIO_LOW);   // GPIO Left Pin set Low
+	webiopi().digitalWrite(M2_A, GPIO_LOW);   // GPIO Front Pin set Low
+	webiopi().digitalWrite(M2_B, GPIO_LOW);   // GPIO Rear Pin set Low
+
+	drawStatusGpio();
+}
+
+/*
+ *	Touch event (e) properties :
+ *	e.touches: 			Array of touch objects for every finger currently touching the screen
+ *	e.targetTouches: 	Array of touch objects for every finger touching the screen that
+ *						originally touched down on the DOM object the transmitted the event.
+ *	e.changedTouches	Array of touch objects for touches that are changed for this event.
+ *						I'm not sure if this would ever be a list of more than one, but would
+ *						be bad to assume.
+ *
+ *	Touch objects :
+ *
+ *	identifier: An identifying number, unique to each touch event
+ *	target: DOM object that broadcast the event
+ *	clientX: X coordinate of touch relative to the viewport (excludes scroll offset)
+ *	clientY: Y coordinate of touch relative to the viewport (excludes scroll offset)
+ *	screenX: Relative to the screen
+ *	screenY: Relative to the screen
+ *	pageX: Relative to the full page (includes scrolling)
+ *	pageY: Relative to the full page (includes scrolling)
+ */
+
+function onTouchStart(e) {
+
+	for(var i = 0; i<e.changedTouches.length; i++){
+		var touch =e.changedTouches[i];
+		//console.log(leftTouchID + " "
+		if((leftTouchID<0) && (touch.clientX<halfWidth))
+		{
+			writeDelayCnt = 0;
+			leftTouchID = touch.identifier;
+			leftTouchStartPos.reset(touch.clientX, touch.clientY);
+			leftTouchPos.copyFrom(leftTouchStartPos);
+			leftVector.reset(0,0);
+			continue;
+		}
+	}
+	touches = e.touches;
+}
+
+function onTouchMove(e) {
+	 // Prevent the browser from doing its default thing (scroll, zoom)
+	e.preventDefault();
+
+	for(var i = 0; i<e.changedTouches.length; i++){
+		var touch =e.changedTouches[i];
+		if(leftTouchID == touch.identifier)
+		{
+			leftTouchPos.reset(touch.clientX, touch.clientY);
+			leftVector.copyFrom(leftTouchPos);
+			leftVector.minusEq(leftTouchStartPos);
+			break;
+		}
+	}
+
+	touches = e.touches;
+
+}
+
+function onTouchEnd(e) {
+
+   	touches = e.touches;
+
+	for(var i = 0; i<e.changedTouches.length; i++){
+		var touch =e.changedTouches[i];
+		if(leftTouchID == touch.identifier)
+		{
+			//GPIO Reset
+			stopGpio();
+
+			leftTouchID = -1;
+			leftVector.reset(0,0);
+
+			break;
+		}
+		else if (touch.clientX>(canvas.width - 30) && touch.clientY<50)
+		{
+                    webiopi().setFunction(M1_A, "IN");
+                    webiopi().setFunction(M1_B, "IN");
+                    webiopi().setFunction(M2_A, "IN");
+                    webiopi().setFunction(M2_B, "IN");
+                    
+                    sleep(3000); 
+                    c.fillText("x:"+(canvas.width-touch.clientX)+" y:"+(canvas.height-touch.clientY), canvas.width/2, canvas.height/2);
+        	    self.close();
+		}
+	}
+
+}
+
+function sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
+  }
+}
+
+function onMouseMove(event) {
+
+	mouseX = event.offsetX;
+	mouseY = event.offsetY;
+}
+
+
+function setupCanvas() {
+
+	canvas = document.createElement( 'canvas' );
+	c = canvas.getContext( '2d' );
+	container = document.createElement( 'div' );
+	container.className = "container";
+
+	document.body.appendChild( container );
+	container.appendChild(canvas);
+
+	resetCanvas();
+
+	c.strokeStyle = "#ffffff";
+	c.lineWidth =2;
+}
+
+</script>
+
+</body>
+</html>
