@@ -1,0 +1,19 @@
+---------------------------------------------------------------------------
+NCDrill File Report For: multipi150603.PcbDoc   2015-06-03  ¿ÀÈÄ 4:50:01
+---------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : multipi150603-RoundHoles.TXT
+ASCII SlotHoles File : multipi150603-SlotHoles.TXT
+
+Tool         Hole Size           Hole Type     Hole Count Plated       Tool Travel
+---------------------------------------------------------------------------
+T1        0.4064mm (16mil)         Round          24               136.20 mm (5.36 Inch)
+T2        0.6096mm (24mil)         Round          1                0.00 mm (0.00 Inch)
+T3        0.8mm (31.496mil)        Round          12               166.27 mm (6.55 Inch)
+T4        0.9mm (35.433mil)        Round          311              1020.29 mm (40.17 Inch)
+T5        1.2mm (47.244mil)        Slot           3                7241.57 mm (285.10 Inch)
+---------------------------------------------------------------------------
+Totals                                            351              8564.33 mm (337.18 Inch)
+
+Total Processing Time (hh:mm:ss) : 00:00:01
