@@ -1,0 +1,141 @@
+<!doctype html>
+<html><head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+    <style>
+      h1 {
+          margin-left: 30px;
+      }
+      body {
+          background-color: #F0F0F0;
+          font-family: "Arial";
+      }
+    </style>
+</head><body lang="en">
+    <h1>Click Pi RC</h1>
+
+
+    <div class="dropdown">
+      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+        <span class="selection">Choose This</span><span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+        <li role="presentation"><a role="menuitem" tabindex="1" href="#">Front-Rear Motor</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="2" href="#">Left-Right Motor</a></li>
+      </ul>
+    </div>
+    
+
+    <div id="clickcontrol" class="button" align="center">
+        <div id="top">
+            <button id="fwbutton" type="button" class="btn btn-info">Forward</button>
+        </div>
+        <div id="middle">
+            <button id="ltbutton" type="button" class="btn btn-info">Left</button>
+            <button id="stbutton" type="button" class="btn btn-info">Stop</button>
+            <button id="rtbutton" type="button" class="btn btn-info">Right</button>
+        </div>
+        <div id="bottom">
+            <button id="bwbutton" type="button" class="btn btn-info">Backward</button>
+        </div>
+    </div>
+
+    <script>
+        var sockjs_url = '/rc';
+        var sockjs = new SockJS(sockjs_url);
+
+        var div  = $('#clickcontrol div');
+
+        var print = function(m, p) {
+            p = (p === undefined) ? '' : JSON.stringify(p);
+            div.append($("<code>").text(m + ' ' + p));
+            div.append($("<br>"));
+        };
+
+        sockjs.onopen    = function()  {};
+        sockjs.onmessage = function(e) {
+            if ( e.data == 'fw'){
+                document.getElementById("fwbutton").style.color = "red";
+                document.getElementById("bwbutton").style.color = "black";
+                document.getElementById("stbutton").style.color = "black";
+                document.getElementById("ltbutton").style.color = "black";
+                document.getElementById("rtbutton").style.color = "black";
+                
+                
+            }
+            if ( e.data == 'bw'){
+                document.getElementById("fwbutton").style.color = "black";
+                document.getElementById("bwbutton").style.color = "red";
+                document.getElementById("stbutton").style.color = "black";
+                document.getElementById("ltbutton").style.color = "black";
+                document.getElementById("rtbutton").style.color = "black";
+            }
+            if ( e.data == 'lt'){
+                document.getElementById("fwbutton").style.color = "black";
+                document.getElementById("bwbutton").style.color = "black";
+                document.getElementById("stbutton").style.color = "black";
+                document.getElementById("ltbutton").style.color = "red";
+                document.getElementById("rtbutton").style.color = "black";
+            }
+            if ( e.data == 'rt'){
+                document.getElementById("fwbutton").style.color = "black";
+                document.getElementById("bwbutton").style.color = "black";
+                document.getElementById("stbutton").style.color = "black";
+                document.getElementById("ltbutton").style.color = "black";
+                document.getElementById("rtbutton").style.color = "red";
+            }
+            if ( e.data == 'st'){
+                document.getElementById("fwbutton").style.color = "black";
+                document.getElementById("bwbutton").style.color = "black";
+                document.getElementById("stbutton").style.color = "red";
+                document.getElementById("ltbutton").style.color = "black";
+                document.getElementById("rtbutton").style.color = "black";
+            }
+        };
+        sockjs.onclose   = function()  {};
+
+        fwbutton.onclick=function() {
+            //print('[ ] sending', 'fw');
+            sockjs.send('fw');
+            return false;
+        };
+        bwbutton.onclick=function() {
+            //print('[ ] sending', 'bw');
+            sockjs.send('bw');
+            return false;
+        };
+        ltbutton.onclick=function() {
+            //print('[ ] sending', 'lt');
+            sockjs.send('lt');
+            return false;
+        };
+        rtbutton.onclick=function() {
+            //print('[ ] sending', 'rt');
+            sockjs.send('rt');
+            return false;
+        };
+        stbutton.onclick=function() {
+            //print('[ ] sending', 'rt');
+            sockjs.send('st');
+            return false;
+        };
+        
+        $(".dropdown-menu li a").click(function(e){
+          $(".dropdown-toggle").dropdown('toggle');
+          var selText = $(this).text();
+          if ( selText == "Front-Rear Motor" ){
+              //print('[ ] sending', 'fr');
+              sockjs.send('fr');
+          }
+          else if ( selText == "Left-Right Motor" ){
+              //print('[ ] sending', 'lr');
+              sockjs.send('lr');
+          }
+            return false;
+        });
+    </script>
+</body></html>
