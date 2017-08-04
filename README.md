@@ -11,7 +11,7 @@
 
 ## MultiPi Plus PCB Design
 <img src="https://github.com/rasplay/Multi_Control_RC_Car_Project/blob/master/IMG/pcb_2.jpg" width=“1000”>
-<img src="https://github.com/rasplay/Multi_Control_RC_Car_Project/blob/master/IMG/KakaoTalk_20150723_2106138.jpg" width="1000">
+<img src="https://github.com/rasplay/Multi_Control_RC_Car_Project/blob/master/IMG/IMG_0973.JPG" width="1000">
 
 ## RAS RC-Car has been used RaspberryPi GPIO PIN
 
