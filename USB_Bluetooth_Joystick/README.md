@@ -20,15 +20,16 @@ SW
  1. Joystick Driver Package, Library for Raspberry Pi
 
 Installation Joystick Driver
-
+```
 $ sudo apt-get install joystick
-
+```
 DCMotorKeyControl Clone
-
+```
 $ git clone https://github.com/rasplay/DCMotorJoystickControl
 $ cd DCMotorJoystickControl
-
+```
 and, run
+```
 $ sudo python joystick.py
-
+```
 Enjoy!!  
