@@ -9,15 +9,16 @@
 # app-debug.apk
   android smart phone wifi Remote Joystick
   
-  ![RAS RC-CAR](http://www.rasplay.org/wp-content/uploads/KakaoTalk_20150730_102457881.jpg)
+<img src="http://www.rasplay.org/wp-content/uploads/KakaoTalk_20150730_102457881.jpg" width="700">
 
 # wifi_server.py
   android smart phone wifi Remote Joystick for Raspberrypi running file
 
-```shell
+# Shell command on the RaspberryPi
+```
 $ sudo pythone server.py 9001 (raspberrypi IP adress)
 ```
 
-  ![RAS RC-CAR](http://www.rasplay.org/wp-content/uploads/wifi_7.jpg)
+<img src="http://www.rasplay.org/wp-content/uploads/wifi_7.jpg" width="700">
 
 
