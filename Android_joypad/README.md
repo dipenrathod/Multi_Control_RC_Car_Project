@@ -3,9 +3,6 @@
 
 [![ScreenShot](http://i1.wp.com/shop.rasplay.org/wp-content/uploads/2015/07/pakage_1.jpg?resize=650%2C262)](https://www.youtube.com/embed/8BadJSR5Q2s)
 
-
-<iframe width="600" height="480" src="https://www.youtube.com/embed/8BadJSR5Q2s" frameborder="0" allowfullscreen></iframe>
-
   run movie click to the image
   
 
