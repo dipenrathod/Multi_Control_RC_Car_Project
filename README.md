@@ -20,13 +20,10 @@
    - Motor A : GPIO 4, GPIO 27
    - Motor B : GPIO 17, GPIO 22
 
-## RAS RC-Car support controller 
-| Section | Keyboard | Joystick | Android | ISO | WEB | Sensor | 
-|:-------:|:-------:|:------:|:-------:|:-------:|:------:|:------:|
-|Motor|   O    |  O    |   O    |   O    |   O    |   O   |
-|Bluetooth|  O    |  O    |   O    |   X    |  X |   O  |
-|WiFi|  O    |  O    |   O    |   X    |  O |   X  |
-|CAMERA|   X    |  X    |   X    |   X    |  O |   X  |
-|GPS|   X    |  X    |   X    |   X    |  O |   X  |
+## RAS RC-Car Parts
+|Section|Detail|volume|Joystick|
+|:-------:|:-------:|:------:|:------:|
+|Instrument|RASTA Toy RC CAR|1EA||
+
 
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
